@@ -1,0 +1,16 @@
+#!/bin/sh
+
+PATH=/bin:/usr/bin:/root/scripts
+
+cd /var/log/imap4-ssl
+cat @400* current | tai64nlocal  > /tmp/imap4-ssl.log
+
+cd /var/log/imap4
+cat @400* current | tai64nlocal  > /tmp/imap4.log
+
+cd /tmp
+cat imap4-ssl.log imap4.log | grep ^20 | sort > imap-all.log
+
+cat /tmp/imap-all.log | data-time-slice.py 0 2 | log2json.py
+
+json2html.py > /var/www/html/last2hours.html
