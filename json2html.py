@@ -2,6 +2,7 @@
 
 import sys
 import json
+from geoip import geolite2
 
 def html_header():
   print '<!DOCTYPE html>'
@@ -32,7 +33,7 @@ def html_footer():
 
 
 def main():
-  
+
   addr = dict()
   data_file = '/tmp/data.json'
 
@@ -54,17 +55,27 @@ def main():
   print '<td></td>'
   print '</tr>'
   print '<tr>'
-  print '<th>email</th><th>IP address</th><th>Count</th>'
+  print '<th>email</th><th>IP address</th><th>Count</th><th>Location</th>'
   print '</tr>'
   for email in addr.keys():
     d = addr[email]
     ips = sorted(d, key=d.get, reverse=True)
-    print '<tr><td>%s</td><td>%s</td><td>%s</td></tr>' % (email, ips[0], d[ips[0]])
+    match = geolite2.lookup(ips[0])
+    if match is not None:
+      tz = match.timezone
+    else:
+      tz = 'Unknown'
+    print '<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % (email, ips[0], d[ips[0]], tz)
     for ip in ips[1:]:
-      print '<tr><td></td><td>%s</td><td>%s</td></tr>' % (ip, d[ip])
+      match = geolite2.lookup(ip)
+      if match is not None:
+        tz = match.timezone
+      else:
+        tz = 'Unknown'
+      print '<tr><td></td><td>%s</td><td>%s</td><td>%s</td></tr>' % (ip, d[ip], tz)
   print '</table>'
   html_footer()
-  
+
 #  print json.dumps(addr)
 
 if __name__ == "__main__":
